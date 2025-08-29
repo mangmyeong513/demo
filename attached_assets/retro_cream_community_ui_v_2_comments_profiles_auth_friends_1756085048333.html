@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Retro Cream Community — v2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/ko.js"></script>
+  <style>
+    :root{
+      --cream:#FFF5DF; --butter:#F7D58C; --mango:#F4B661; --cocoa:#5C4433; --coffee:#8A5E3C; --ink:#3E3228; --muted:#8E7C6A; --card:#FFF9EB; --stroke:#F0E2C9; --radius:22px;
+    }
+    html,body{height:100%}
+    body{background:var(--cream); color:var(--ink); font-family:'Nunito',system-ui,-apple-system,'Noto Sans KR',sans-serif}
+    a{color:inherit;text-decoration:none}
+    .soft-card{background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius)} 
+    .ghost{background:transparent;border:1px solid var(--stroke)}
+    .btn-mango{background:var(--mango); color:#3c2b1f; border:0}
+    .btn-mango:hover{background:#f2a44a; color:#2e2119}
+    .pill{padding:.45rem .9rem; border-radius:999px; background:#fff2d5; border:1px solid var(--stroke); display:inline-flex; align-items:center; gap:.35rem}
+    .pill.active{background:var(--mango); color:#3c2b1f; border-color:transparent}
+    .mini{font-size:.9rem; color:var(--muted)}
+    .appbar{backdrop-filter:blur(12px); background:rgba(255,245,223,.85); border-bottom:1px solid var(--stroke)}
+    .tabbar{position:fixed; bottom:0; left:0; right:0; z-index:1040; background:rgba(255,245,223,.96); border-top:1px solid var(--stroke)}
+    .tabbar .tab{padding:.55rem 0; color:var(--muted)}
+    .tabbar .tab.active{color:var(--ink)}
+    .fab{position:fixed; right:16px; bottom:86px; z-index:1050; width:58px; height:58px; border-radius:999px; background:linear-gradient(180deg,#F7D58C,#F4B661); color:#3b2a20; border:0}
+    .screen{display:none}
+    .screen.active{display:block}
+    .avatar{width:42px;height:42px;border-radius:50%; background:linear-gradient(145deg,#d9c0a2,#fff); border:1px solid var(--stroke)}
+    .vinyl{width:72px; height:72px; border-radius:50%; background:radial-gradient(circle at center, #d9c2a8 0 10px, #4f3d2f 11px 12px, #6b5442 13px 100%)}
+    @media (min-width: 992px){ .shell{display:grid; grid-template-columns: 260px minmax(0,720px) 340px; gap:20px} .left-rail,.right-rail{position:sticky; top:82px; align-self:start} .tabbar,.fab{display:none} }
+    /* 댓글 */
+    .comment-item{border-top:1px dashed var(--stroke); padding-top:.5rem; margin-top:.5rem}
+    .comment-box{border:1px solid var(--stroke); border-radius:14px; padding:.4rem .6rem; background:#fffef8}
+    /* 친구/DM */
+    .dm-bubble{max-width:70%; padding:.5rem .7rem; border-radius:14px; margin:.25rem 0}
+    .dm-me{background:#ffe8c0; margin-left:auto}
+    .dm-you{background:#fff; border:1px solid var(--stroke)}
+  </style>
+</head>
+<body>
+  <nav class="navbar appbar fixed-top">
+    <div class="container-fluid px-3">
+      <div class="d-flex align-items-center gap-2">
+        <div class="vinyl" style="width:26px;height:26px"></div>
+        <div class="fw-bold">Retro Community</div>
+      </div>
+      <ul class="nav d-none d-lg-flex">
+        <li class="nav-item"><a class="nav-link" data-route="#home" href="#home">홈</a></li>
+        <li class="nav-item"><a class="nav-link" data-route="#explore" href="#explore">탐색</a></li>
+        <li class="nav-item"><a class="nav-link" data-route="#bookmarks" href="#bookmarks">북마크</a></li>
+        <li class="nav-item"><a class="nav-link" data-route="#profile" href="#profile">프로필</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm ghost d-none" id="friendsBtn" data-bs-toggle="offcanvas" data-bs-target="#friendsPanel"><i class="bi bi-people"></i></button>
+        <button class="btn btn-sm ghost d-none" id="logoutBtn"><i class="bi bi-box-arrow-right"></i></button>
+        <button class="btn btn-sm btn-mango" id="loginOpen"><i class="bi bi-person"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container pt-5 mt-4 shell">
+    <aside class="left-rail d-none d-lg-block">
+      <div class="soft-card p-3 mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <div class="avatar" id="leftAvatar"></div>
+          <div>
+            <div class="fw-bold" id="leftName">게스트</div>
+            <div class="mini" id="leftBio">로그인해보세요</div>
+          </div>
+        </div>
+        <button class="btn btn-mango w-100 mt-3" id="composeOpen">글쓰기</button>
+      </div>
+      <div class="soft-card p-3">
+        <div class="fw-semibold mb-2">인기 태그</div>
+        <div class="d-flex flex-wrap gap-2">
+          <span class="pill">#레트로</span><span class="pill">#음악</span><span class="pill">#사진</span><span class="pill">#질문</span>
+        </div>
+      </div>
+    </aside>
+
+    <section>
+      <div id="home" class="screen active">
+        <div id="feed" class="d-flex flex-column gap-3"></div>
+      </div>
+      <div id="explore" class="screen">
+        <div class="soft-card p-3 mb-3"><div class="d-flex align-items-center gap-2"><i class="bi bi-search"></i><input id="q" class="form-control bg-transparent" placeholder="검색"/></div></div>
+        <div id="exploreResults" class="d-flex flex-column gap-3"></div>
+      </div>
+      <div id="bookmarks" class="screen"><div class="soft-card p-4 text-center mini">아직 북마크가 없어요.</div></div>
+      <div id="profile" class="screen">
+        <div class="soft-card p-3 mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="avatar" style="width:64px;height:64px" id="profileAvatar"></div>
+            <div>
+              <div class="fw-bold fs-5" id="profileName">게스트</div>
+              <div class="mini" id="profileEmail">-</div>
+            </div>
+          </div>
+        </div>
+        <div class="soft-card p-3">
+          <div class="fw-semibold mb-2">프로필 수정</div>
+          <div class="row g-2">
+            <div class="col-12 col-md-6"><input id="editName" class="form-control bg-transparent" placeholder="닉네임"/></div>
+            <div class="col-12 col-md-6"><input id="editAvatar" class="form-control bg-transparent" placeholder="아바타 URL (선택)"/></div>
+            <div class="col-12"><textarea id="editBio" class="form-control bg-transparent" rows="3" placeholder="소개"></textarea></div>
+          </div>
+          <div class="d-flex justify-content-end mt-2">
+            <button class="btn btn-mango" id="saveProfile">저장</button>
+          </div>
+        </div>
+        <div class="soft-card p-3 mt-3">
+          <div class="fw-semibold mb-2">내 글</div>
+          <div id="myPosts" class="d-flex flex-column gap-3"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="right-rail d-none d-lg-block">
+      <div class="soft-card p-3 mb-3"><div class="fw-semibold mb-2">공지</div><div class="mini">댓글/프로필/로그인/친구 기능 데모</div></div>
+      <div class="soft-card p-3">
+        <div class="fw-semibold mb-2">추천 사용자</div>
+        <div id="suggested" class="d-flex flex-column gap-2"></div>
+      </div>
+    </aside>
+  </main>
+
+  <nav class="tabbar d-lg-none">
+    <div class="container"><div class="row text-center">
+      <div class="col tab" data-route="#home"><i class="bi bi-house"></i><div class="mini">홈</div></div>
+      <div class="col tab" data-route="#explore"><i class="bi bi-search"></i><div class="mini">탐색</div></div>
+      <div class="col tab" data-route="#compose"><i class="bi bi-plus-square"></i><div class="mini">작성</div></div>
+      <div class="col tab" data-route="#bookmarks"><i class="bi bi-bookmark"></i><div class="mini">북마크</div></div>
+      <div class="col tab" data-route="#profile"><i class="bi bi-person"></i><div class="mini">프로필</div></div>
+    </div></div>
+  </nav>
+  <button class="fab d-lg-none" id="composeOpenMobile"><i class="bi bi-pencil-square"></i></button>
+
+  <!-- Compose Modal -->
+  <div class="modal fade" id="composeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content soft-card p-2">
+        <div class="modal-header border-0"><h5 class="modal-title">새 글</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <textarea id="composeText" class="form-control bg-transparent" rows="4" placeholder="무슨 일이 있었나요?"></textarea>
+          <div class="mini mt-2">#태그는 공백으로 구분 (선택)</div>
+          <input id="composeTags" class="form-control bg-transparent" placeholder="#레트로 #사진" />
+        </div>
+        <div class="modal-footer border-0"><button class="btn ghost" data-bs-dismiss="modal">취소</button><button class="btn btn-mango" id="postBtn">게시</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login / SignUp Modal -->
+  <div class="modal fade" id="authModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content soft-card p-2">
+        <div class="modal-header border-0"><h5 class="modal-title">로그인 / 회원가입</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <ul class="nav nav-pills mb-3" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#loginTab" type="button">로그인</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#signupTab" type="button">회원가입</button></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="loginTab">
+              <input id="loginEmail" class="form-control bg-transparent mb-2" placeholder="Email" />
+              <input id="loginPass" type="password" class="form-control bg-transparent mb-3" placeholder="Password" />
+              <button id="loginBtn" class="btn btn-mango w-100">로그인</button>
+            </div>
+            <div class="tab-pane fade" id="signupTab">
+              <input id="suName" class="form-control bg-transparent mb-2" placeholder="닉네임" />
+              <input id="suEmail" class="form-control bg-transparent mb-2" placeholder="Email" />
+              <input id="suPass" type="password" class="form-control bg-transparent mb-3" placeholder="Password" />
+              <button id="signupBtn" class="btn btn-mango w-100">가입</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Friends Offcanvas -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="friendsPanel">
+    <div class="offcanvas-header"><h5 class="offcanvas-title">친구</h5><button class="btn-close" data-bs-dismiss="offcanvas"></button></div>
+    <div class="offcanvas-body">
+      <div class="mini mb-2">친구 목록</div>
+      <div id="friendsList" class="d-flex flex-column gap-2 mb-3"></div>
+      <div class="mini mb-2">모든 사용자</div>
+      <div id="allUsers" class="d-flex flex-column gap-2"></div>
+    </div>
+  </div>
+
+  <!-- DM Modal -->
+  <div class="modal fade" id="dmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content soft-card p-2">
+        <div class="modal-header border-0"><h5 class="modal-title" id="dmTitle">대화</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body" style="max-height:50vh; overflow:auto" id="dmMessages"></div>
+        <div class="modal-footer border-0 d-flex gap-2">
+          <input id="dmInput" class="form-control bg-transparent" placeholder="메시지" />
+          <button class="btn btn-mango" id="dmSend">보내기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ---------- Util ----------
+const $ = (sel, root=document)=>root.querySelector(sel);
+const $$ = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
+const uuid = ()=>crypto?.randomUUID?.() || 'u'+Math.random().toString(36).slice(2);
+function escapeHtml(s=''){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));}
+function timeAgo(ts){ dayjs.extend(window.dayjs_plugin_relativeTime); dayjs.locale('ko'); return dayjs(ts).fromNow(); }
+
+// ---------- Storage (very simple demo) ----------
+const DB = {
+  read(){
+    const d = JSON.parse(localStorage.getItem('retro-db')||'{}');
+    return Object.assign({ users:[], posts:[], comments:{}, friends:{}, dms:{}, session:null }, d);
+  },
+  write(data){ localStorage.setItem('retro-db', JSON.stringify(data)); },
+  reset(){ localStorage.removeItem('retro-db'); }
+}
+
+// ---------- Auth ----------
+function current(){ return DB.read().session ? DB.read().users.find(u=>u.id===DB.read().session.userId) : null; }
+function signup({name,email,pass}){
+  const db=DB.read();
+  if(db.users.some(u=>u.email===email)) throw new Error('이미 가입된 이메일');
+  const user={ id:uuid(), name, email, pass, bio:'', avatar:'' };
+  db.users.push(user); db.session={userId:user.id}; DB.write(db); return user;
+}
+function login({email,pass}){
+  const db=DB.read(); const u=db.users.find(u=>u.email===email && u.pass===pass);
+  if(!u) throw new Error('이메일/비밀번호를 확인해요');
+  db.session={userId:u.id}; DB.write(db); return u;
+}
+function logout(){ const db=DB.read(); db.session=null; DB.write(db); }
+
+// ---------- Sample Seed ----------
+(function seed(){
+  const db=DB.read(); if(db.users.length) return;
+  const u1={id:uuid(),name:'jessica',email:'j@a.a',pass:'1',bio:'사진러',avatar:''};
+  const u2={id:uuid(),name:'retrocat',email:'r@a.a',pass:'1',bio:'음악수집가',avatar:''};
+  db.users=[u1,u2]; db.session={userId:u1.id};
+  db.posts=[
+    { id:uuid(), userId:u1.id, time:Date.now()-1000*60*15, content:'비 오는 날엔 레코드판이 최고.', tags:['음악','레트로'] },
+    { id:uuid(), userId:u2.id, time:Date.now()-1000*60*60*2, content:'카세트 테이프 정리 중 2002 믹스 발견!', tags:['음악'] }
+  ];
+  db.comments={};
+  db.friends={ [u1.id]:[u2.id], [u2.id]:[u1.id] };
+  DB.write(db);
+})();
+
+// ---------- Rendering ----------
+function userById(id){ return DB.read().users.find(u=>u.id===id)||{name:'알수없음'} }
+function postCard(p){
+  const u=userById(p.userId);
+  const cmts=(DB.read().comments[p.id]||[]);
+  return `
+  <article class="soft-card p-3" data-post="${p.id}">
+    <div class="d-flex gap-2 align-items-center">
+      <div class="avatar" style="background-image:url('${escapeHtml(u.avatar||'')}'); background-size:cover"></div>
+      <div>
+        <div class="fw-semibold">${escapeHtml(u.name)}</div>
+        <div class="mini">${timeAgo(p.time)}</div>
+      </div>
+      <div class="ms-auto dropdown">
+        <button class="btn btn-sm ghost" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" data-action="dm" data-uid="${u.id}" href="#">DM 보내기</a></li>
+          <li><a class="dropdown-item" data-action="friend" data-uid="${u.id}" href="#">친구 추가</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-2">${escapeHtml(p.content)}</div>
+    ${p.tags?.length?`<div class="mt-2 d-flex gap-2 flex-wrap">${p.tags.map(t=>`<span class='pill mini'>#${escapeHtml(t)}</span>`).join('')}</div>`:''}
+    <div class="d-flex gap-3 mt-3 mini">
+      <a href="#" data-toggle="comments"><i class="bi bi-chat"></i> 댓글 ${cmts.length}</a>
+      <a href="#"><i class="bi bi-heart"></i> 12</a>
+      <a href="#"><i class="bi bi-bookmark"></i></a>
+    </div>
+    <div class="comments collapse mt-2"></div>
+  </article>`
+}
+
+function renderFeed(){ const db=DB.read(); $('#feed').innerHTML=db.posts.sort((a,b)=>b.time-a.time).map(postCard).join(''); }
+function renderMyPosts(){ const me=current(); const db=DB.read(); $('#myPosts').innerHTML=(me?db.posts.filter(p=>p.userId===me.id):[]).map(postCard).join('')||`<div class='soft-card p-4 text-center mini'>내 글이 여기에 보여요</div>` }
+function renderHeader(){ const me=current(); $('#leftName').textContent=me?me.name:'게스트'; $('#leftBio').textContent=me?(me.bio||'반가워요!'):'로그인해보세요'; $('#profileName').textContent=me?me.name:'게스트'; $('#profileEmail').textContent=me?me.email:'-'; $('#loginOpen').classList.toggle('d-none', !!me); $('#logoutBtn').classList.toggle('d-none', !me); $('#friendsBtn').classList.toggle('d-none', !me); }
+function renderSuggested(){ const me=current(); const db=DB.read(); const list=db.users.filter(u=>!me||u.id!==me.id).slice(0,5).map(u=>`<div class='d-flex align-items-center gap-2'><div class='avatar'></div><div class='flex-grow-1'>${escapeHtml(u.name)}</div><button class='btn btn-sm ghost' data-addfriend='${u.id}'>추가</button></div>`).join(''); $('#suggested').innerHTML=list; }
+
+// Comments section load on demand
+function ensureComments(postId, container){
+  const db=DB.read(); const items=db.comments[postId]||[];
+  container.innerHTML = `
+    <div class='comment-list'>${items.map(c=>`<div class='comment-item'><div class='mini'>${escapeHtml(userById(c.userId).name)} · ${timeAgo(c.time)}</div><div>${escapeHtml(c.text)}</div></div>`).join('')||`<div class='mini'>첫 댓글을 남겨보세요</div>`}</div>
+    <div class='d-flex gap-2 mt-2'>
+      <input class='form-control comment-box' placeholder='댓글을 입력...' />
+      <button class='btn btn-mango' data-sendcomment>등록</button>
+    </div>`;
+}
+
+// ---------- Friends / DM ----------
+function openFriends(){ const db=DB.read(); const me=current(); if(!me) return;
+  const myF=(db.friends[me.id]||[]).map(uid=>db.users.find(u=>u.id===uid)).filter(Boolean);
+  $('#friendsList').innerHTML = myF.map(u=>`<div class='d-flex align-items-center gap-2'><div class='avatar'></div><div class='flex-grow-1'>${escapeHtml(u.name)}</div><button class='btn btn-sm btn-mango' data-dm='${u.id}'>대화</button></div>`).join('') || `<div class='mini'>친구가 없어요</div>`;
+  $('#allUsers').innerHTML = db.users.filter(u=>u.id!==me.id).map(u=>`<div class='d-flex align-items-center gap-2'><div class='avatar'></div><div class='flex-grow-1'>${escapeHtml(u.name)}</div><button class='btn btn-sm ghost' data-addfriend='${u.id}'>추가</button></div>`).join('');
+}
+function convId(a,b){ return [a,b].sort().join('|'); }
+function openDM(toId){ const me=current(); const db=DB.read(); const cid=convId(me.id,toId); const msgs=db.dms[cid]||[]; $('#dmTitle').textContent = `${userById(toId).name} 님과의 대화`;
+  const body=$('#dmMessages'); body.innerHTML = msgs.map(m=>`<div class='dm-bubble ${m.from===me.id?'dm-me':'dm-you'}'>${escapeHtml(m.text)}</div>`).join('');
+  const m = new bootstrap.Modal($('#dmModal')); m.show(); setTimeout(()=>body.scrollTop=body.scrollHeight,10);
+  $('#dmSend').onclick=()=>{ const text=$('#dmInput').value.trim(); if(!text) return; const db=DB.read(); const cid=convId(me.id,toId); (db.dms[cid]=db.dms[cid]||[]).push({from:me.id,to:toId,text,time:Date.now()}); DB.write(db); $('#dmInput').value=''; openDM(toId); };
+}
+
+// ---------- Events ----------
+window.addEventListener('DOMContentLoaded', ()=>{
+  renderFeed(); renderMyPosts(); renderHeader(); renderSuggested();
+  // route
+  function showScreen(hash){ const target = hash || location.hash || '#home'; $$('.screen').forEach(s=>s.classList.remove('active')); const el=$(target); if(el) el.classList.add('active'); $$('[data-route]').forEach(a=>a.classList.toggle('active', a.getAttribute('data-route')===target)); }
+  window.addEventListener('hashchange', ()=>showScreen()); showScreen();
+
+  // compose open
+  $('#composeOpen').onclick = $('#composeOpenMobile').onclick = ()=>{ if(!current()){ new bootstrap.Modal($('#authModal')).show(); return; } new bootstrap.Modal($('#composeModal')).show(); };
+  // post submit
+  $('#postBtn').onclick=()=>{ const me=current(); if(!me){ new bootstrap.Modal($('#authModal')).show(); return; } const text=$('#composeText').value.trim(); if(!text) return; const tags=$('#composeTags').value.trim().split(/\s+/).filter(Boolean).map(t=>t.replace(/^#/,'')); const db=DB.read(); db.posts.unshift({id:uuid(), userId:me.id, time:Date.now(), content:text, tags}); DB.write(db); $('#composeText').value=''; $('#composeTags').value=''; renderFeed(); renderMyPosts(); bootstrap.Modal.getInstance($('#composeModal')).hide(); };
+
+  // feed delegation: toggle comments / add comment / dm or friend
+  $('#feed').addEventListener('click', (e)=>{
+    const a=e.target.closest('a'); if(!a) return;
+    const card=e.target.closest('[data-post]'); const postId=card?.getAttribute('data-post');
+    if(a.dataset.toggle==='comments'){ e.preventDefault(); const box=card.querySelector('.comments'); box.classList.toggle('show'); if(box.classList.contains('show')) ensureComments(postId, box); }
+  });
+  // comment send (capture)
+  $('#feed').addEventListener('click',(e)=>{
+    if(e.target.matches('[data-sendcomment]')){ const card=e.target.closest('[data-post]'); const postId=card.getAttribute('data-post'); const input=card.querySelector('.comments input'); const me=current(); if(!me){ new bootstrap.Modal($('#authModal')).show(); return; } const text=input.value.trim(); if(!text) return; const db=DB.read(); (db.comments[postId]=db.comments[postId]||[]).push({id:uuid(), userId:me.id, text, time:Date.now()}); DB.write(db); ensureComments(postId, card.querySelector('.comments')); card.querySelector('[data-toggle="comments"]').innerHTML = `<i class="bi bi-chat"></i> 댓글 ${(db.comments[postId]||[]).length}`; }
+  });
+  // dropdown actions (dm/friend)
+  $('#feed').addEventListener('click',(e)=>{
+    const act=e.target.closest('[data-action]'); if(!act) return; e.preventDefault(); const uid=act.getAttribute('data-uid'); const me=current(); if(!me){ new bootstrap.Modal($('#authModal')).show(); return; }
+    if(act.dataset.action==='friend'){ const db=DB.read(); db.friends[me.id]=Array.from(new Set([...(db.friends[me.id]||[]), uid])); DB.write(db); openFriends(); }
+    if(act.dataset.action==='dm'){ openDM(uid); }
+  });
+
+  // auth open
+  $('#loginOpen').onclick=()=> new bootstrap.Modal($('#authModal')).show();
+  $('#logoutBtn').onclick=()=>{ logout(); renderHeader(); renderMyPosts(); };
+  $('#loginBtn').onclick=()=>{ try{ login({email:$('#loginEmail').value.trim(), pass:$('#loginPass').value}); bootstrap.Modal.getInstance($('#authModal')).hide(); renderHeader(); renderMyPosts(); }catch(err){ alert(err.message);} };
+  $('#signupBtn').onclick=()=>{ try{ signup({name:$('#suName').value.trim(), email:$('#suEmail').value.trim(), pass:$('#suPass').value}); bootstrap.Modal.getInstance($('#authModal')).hide(); renderHeader(); renderMyPosts(); }catch(err){ alert(err.message);} };
+
+  // profile save
+  $('#saveProfile').onclick=()=>{ const me=current(); if(!me){ new bootstrap.Modal($('#authModal')).show(); return; } const db=DB.read(); const idx=db.users.findIndex(u=>u.id===me.id); db.users[idx]={...me, name:$('#editName').value.trim()||me.name, bio:$('#editBio').value.trim(), avatar:$('#editAvatar').value.trim()}; DB.write(db); renderHeader(); $('#profileName').textContent=db.users[idx].name; $('#profileAvatar').style.backgroundImage=`url('${db.users[idx].avatar||''}')`; alert('저장되었습니다'); };
+
+  // friends panel
+  $('#friendsBtn').addEventListener('click', openFriends);
+  $('#friendsPanel').addEventListener('click', (e)=>{
+    const add=e.target.closest('[data-addfriend]'); if(add){ const uid=add.getAttribute('data-addfriend'); const me=current(); if(!me){ new bootstrap.Modal($('#authModal')).show(); return; } const db=DB.read(); db.friends[me.id]=Array.from(new Set([...(db.friends[me.id]||[]), uid])); DB.write(db); openFriends(); }
+    const dm=e.target.closest('[data-dm]'); if(dm){ openDM(dm.getAttribute('data-dm')); }
+  });
+});
+</script>
+</body>
+</html>

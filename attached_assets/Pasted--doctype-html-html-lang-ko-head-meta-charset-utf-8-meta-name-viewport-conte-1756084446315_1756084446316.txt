@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Retro Cream Community UI</title>
+  <!-- Google Fonts (rounded, retro-ish) -->
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+  <!-- Bootstrap + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <!-- Swiper for carousels/onboarding -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+  <!-- Day.js for tiny time formatting -->
+  <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/ko.js"></script>
+  <style>
+    :root{
+      --cream:#FFF5DF;     /* 배경 크림 */
+      --butter:#F7D58C;    /* 연노랑 */
+      --mango:#F4B661;     /* 포인트 주황 */
+      --cocoa:#5C4433;     /* 진한 갈색 */
+      --coffee:#8A5E3C;    /* 중간 갈색 */
+      --ink:#3E3228;       /* 본문 텍스트 */
+      --muted:#8E7C6A;     /* 보조 텍스트 */
+      --card:#FFF9EB;      /* 카드 배경 */
+      --stroke:#F0E2C9;    /* 경계선 */
+      --radius:22px;
+    }
+    html,body{height:100%}
+    body{background:var(--cream); color:var(--ink); font-family: 'Nunito', system-ui, -apple-system, 'Noto Sans KR', sans-serif;}
+    a{color:inherit;text-decoration:none}
+    .soft-card{background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius);} 
+    .ghost{background:transparent;border:1px solid var(--stroke)}
+    .btn-mango{background:var(--mango); color:#3c2b1f; border:0}
+    .btn-mango:hover{background:#f2a44a; color:#2e2119}
+    .pill{padding:.45rem .9rem; border-radius:999px; background:#fff2d5; border:1px solid var(--stroke); display:inline-flex; align-items:center; gap:.35rem}
+    .pill.active{background:var(--mango); color:#3c2b1f; border-color:transparent}
+    .mini{font-size:.9rem; color:var(--muted)}
+    .brand{font-weight:800; letter-spacing:.5px}
+    .brand i{font-style:normal; color:var(--mango)}
+    .appbar{backdrop-filter:blur(12px); background:rgba(255,245,223,.85); border-bottom:1px solid var(--stroke)}
+    .tabbar{position:fixed; bottom:0; left:0; right:0; z-index:1040; background:rgba(255,245,223,.96); border-top:1px solid var(--stroke)}
+    .tabbar .tab{padding:.55rem 0; color:var(--muted)}
+    .tabbar .tab.active{color:var(--ink)}
+    .fab{position:fixed; right:16px; bottom:86px; z-index:1050; width:58px; height:58px; border-radius:999px; background:linear-gradient(180deg,#F7D58C,#F4B661); color:#3b2a20; border:0}
+    .screen{display:none}
+    .screen.active{display:block}
+    .chip-scroll{white-space:nowrap; overflow:auto; scrollbar-width:none}
+    .chip-scroll::-webkit-scrollbar{display:none}
+    .wave-corner{position:absolute; inset:auto auto 0 0; width:100%; height:140px; pointer-events:none}
+    .wave-corner.top{top:0; bottom:auto}
+    .avatar{width:42px;height:42px;border-radius:50%; background:linear-gradient(145deg,#d9c0a2,#fff); border:1px solid var(--stroke)}
+    .vinyl{width:72px; height:72px; border-radius:50%; background:radial-gradient(circle at center, #d9c2a8 0 10px, #4f3d2f 11px 12px, #6b5442 13px 100%)}
+
+    @media (min-width: 992px){
+      .shell{display:grid; grid-template-columns: 260px minmax(0,720px) 340px; gap:20px}
+      .left-rail,.right-rail{position:sticky; top:82px; align-self:start}
+      .tabbar,.fab{display:none}
+    }
+  </style>
+</head>
+<body>
+  <!-- 상단 앱바 -->
+  <nav class="navbar appbar fixed-top">
+    <div class="container-fluid px-3">
+      <div class="d-flex align-items-center gap-2">
+        <div class="vinyl" style="width:26px;height:26px"></div>
+        <div class="brand">Ti<i>roca</i> community</div>
+      </div>
+      <ul class="nav d-none d-lg-flex">
+        <li class="nav-item"><a class="nav-link" data-route="#home" href="#home">홈</a></li>
+        <li class="nav-item"><a class="nav-link" data-route="#explore" href="#explore">탐색</a></li>
+        <li class="nav-item"><a class="nav-link" data-route="#bookmarks" href="#bookmarks">북마크</a></li>
+        <li class="nav-item"><a class="nav-link" data-route="#profile" href="#profile">프로필</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm ghost" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="bi bi-person"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container pt-5 mt-4 shell">
+    <!-- 좌측 (데스크톱) -->
+    <aside class="left-rail d-none d-lg-block">
+      <div class="soft-card p-3 mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <div class="avatar"></div>
+          <div>
+            <div class="fw-bold">익명 사용자</div>
+            <div class="mini">오늘 뭐 써볼까?</div>
+          </div>
+        </div>
+        <button class="btn btn-mango w-100 mt-3" data-bs-toggle="modal" data-bs-target="#composeModal">글쓰기</button>
+      </div>
+      <div class="soft-card p-3">
+        <div class="fw-semibold mb-2">인기 태그</div>
+        <div class="d-flex flex-wrap gap-2">
+          <span class="pill">#레트로</span>
+          <span class="pill">#음악</span>
+          <span class="pill">#사진</span>
+          <span class="pill">#질문</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 중앙 화면들 -->
+    <section>
+      <!-- 홈 -->
+      <div id="home" class="screen active">
+        <div class="position-relative soft-card p-0 overflow-hidden mb-3">
+          <div class="p-4">
+            <div class="fw-bold fs-4 mb-2">반가워요!</div>
+            <div class="mini">추억의 톤으로 오늘을 기록해요.</div>
+            <div class="mt-3 d-flex gap-2 chip-scroll">
+              <button class="pill active">전체</button>
+              <button class="pill">인기</button>
+              <button class="pill">근황</button>
+              <button class="pill">사진</button>
+              <button class="pill">질문</button>
+            </div>
+          </div>
+          <svg class="wave-corner" viewBox="0 0 1440 160" preserveAspectRatio="none"><path fill="#F7D58C" d="M0,64L48,69.3C96,75,192,85,288,90.7C384,96,480,96,576,85.3C672,75,768,53,864,58.7C960,64,1056,96,1152,101.3C1248,107,1344,85,1392,74.7L1440,64L1440,160L1392,160C1344,160,1248,160,1152,160C1056,160,960,160,864,160C768,160,672,160,576,160C480,160,384,160,288,160C192,160,96,160,48,160L0,160Z"/></svg>
+        </div>
+
+        <div id="feed" class="d-flex flex-column gap-3"></div>
+      </div>
+
+      <!-- 탐색 -->
+      <div id="explore" class="screen">
+        <div class="soft-card p-3 mb-3">
+          <div class="d-flex align-items-center gap-2"><i class="bi bi-search"></i><input id="q" class="form-control bg-transparent" placeholder="검색"/></div>
+        </div>
+        <div class="soft-card p-3 mb-3">
+          <div class="fw-semibold mb-2">이 주의 인기</div>
+          <div class="swiper">
+            <div class="swiper-wrapper">
+              <div class="swiper-slide"><div class="soft-card p-4 text-center" style="width:240px">#레트로</div></div>
+              <div class="swiper-slide"><div class="soft-card p-4 text-center" style="width:240px">#사진</div></div>
+              <div class="swiper-slide"><div class="soft-card p-4 text-center" style="width:240px">#음악</div></div>
+              <div class="swiper-slide"><div class="soft-card p-4 text-center" style="width:240px">#커뮤니티</div></div>
+            </div>
+            <div class="swiper-pagination"></div>
+          </div>
+        </div>
+        <div id="exploreResults" class="d-flex flex-column gap-3"></div>
+      </div>
+
+      <!-- 북마크 -->
+      <div id="bookmarks" class="screen">
+        <div class="soft-card p-4 text-center mini">아직 북마크가 없어요.</div>
+      </div>
+
+      <!-- 프로필 -->
+      <div id="profile" class="screen">
+        <div class="soft-card p-3 mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="avatar" style="width:64px;height:64px"></div>
+            <div>
+              <div class="fw-bold fs-5">익명 사용자</div>
+              <div class="mini">레트로 감성 수집가</div>
+            </div>
+          </div>
+        </div>
+        <div id="myPosts" class="d-flex flex-column gap-3"></div>
+      </div>
+    </section>
+
+    <!-- 우측 (데스크톱) -->
+    <aside class="right-rail d-none d-lg-block">
+      <div class="soft-card p-3 mb-3">
+        <div class="fw-semibold mb-2">공지</div>
+        <div class="mini">새로운 테마 베타 테스트 중!</div>
+      </div>
+      <div class="soft-card p-3">
+        <div class="fw-semibold mb-2">추천 사용자</div>
+        <div class="d-flex flex-column gap-2">
+          <div class="d-flex align-items-center gap-2"><div class="avatar"></div><div><div class="fw-semibold">jessica</div><div class="mini">사진러</div></div></div>
+          <div class="d-flex align-items-center gap-2"><div class="avatar"></div><div><div class="fw-semibold">retrocat</div><div class="mini">음악수집가</div></div></div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- 하단 탭바(모바일) -->
+  <nav class="tabbar d-lg-none">
+    <div class="container">
+      <div class="row text-center">
+        <div class="col tab" data-route="#home"><i class="bi bi-house"></i><div class="mini">홈</div></div>
+        <div class="col tab" data-route="#explore"><i class="bi bi-search"></i><div class="mini">탐색</div></div>
+        <div class="col tab" data-route="#compose"><i class="bi bi-plus-square"></i><div class="mini">작성</div></div>
+        <div class="col tab" data-route="#bookmarks"><i class="bi bi-bookmark"></i><div class="mini">북마크</div></div>
+        <div class="col tab" data-route="#profile"><i class="bi bi-person"></i><div class="mini">프로필</div></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 플로팅 글쓰기 버튼 -->
+  <button class="fab d-lg-none" data-bs-toggle="modal" data-bs-target="#composeModal"><i class="bi bi-pencil-square"></i></button>
+
+  <!-- Compose Modal -->
+  <div class="modal fade" id="composeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content soft-card p-2">
+        <div class="modal-header border-0">
+          <h5 class="modal-title">새 글</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <textarea id="composeText" class="form-control bg-transparent" rows="4" placeholder="무슨 일이 있었나요?"></textarea>
+          <div class="d-flex gap-2 mt-2 flex-wrap">
+            <span class="pill">#레트로</span><span class="pill">#음악</span><span class="pill">#사진</span>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button class="btn ghost" data-bs-dismiss="modal">취소</button>
+          <button class="btn btn-mango" id="postBtn">게시</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Modal (스플래시/로그인 느낌) -->
+  <div class="modal fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content soft-card p-2 overflow-hidden" style="position:relative">
+        <svg class="wave-corner top" viewBox="0 0 1440 160" preserveAspectRatio="none"><path fill="#F7D58C" d="M0,96L80,80C160,64,320,32,480,53.3C640,75,800,149,960,149.3C1120,149,1280,75,1360,37.3L1440,0L1440,0L1360,0C1280,0,1120,0,960,0C800,0,640,0,480,0C320,0,160,0,80,0L0,0Z"/></svg>
+        <div class="modal-header border-0">
+          <div class="vinyl" style="width:38px;height:38px"></div>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-0">
+          <div class="fw-bold fs-4 mb-3">다시 만나서 반가워요</div>
+          <input class="form-control bg-transparent mb-2" placeholder="Email" />
+          <input type="password" class="form-control bg-transparent mb-3" placeholder="Password" />
+          <button class="btn btn-mango w-100">로그인</button>
+          <div class="mini text-center mt-2">또는</div>
+          <div class="d-flex justify-content-center gap-3 py-2"><i class="bi bi-apple"></i><i class="bi bi-google"></i><i class="bi bi-facebook"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ------ 상태 ------
+const state = {
+  posts: [
+    { id:1, author:'jessica', time: Date.now()-1000*60*15, content:'비 오는 날엔 레코드판이 제일이야. 바늘 닿는 소리까지 음악.', tags:['음악','레트로'] },
+    { id:2, author:'retrocat', time: Date.now()-1000*60*60*2, content:'카세트테이프 정리하다가 2002년 믹스테이프 발견! (눈물)', tags:['음악'] },
+    { id:3, author:'익명', time: Date.now()-1000*60*60*24, content:'복고풍 포스터 폰트 추천 좀!', tags:['질문','디자인'] }
+  ]
+};
+
+// ------ 유틸 렌더 ------
+function timeAgo(ts){ dayjs.extend(window.dayjs_plugin_relativeTime); dayjs.locale('ko'); return dayjs(ts).fromNow(); }
+function tagHtml(tags){ return tags?.length ? `<div class="mt-2 d-flex gap-2 flex-wrap">${tags.map(t=>`<span class='pill mini'>#${t}</span>`).join('')}</div>`: '' }
+function postCard(p){
+  return `
+  <article class="soft-card p-3">
+    <div class="d-flex gap-2 align-items-center">
+      <div class="avatar"></div>
+      <div>
+        <div class="fw-semibold">${p.author}</div>
+        <div class="mini">${timeAgo(p.time)}</div>
+      </div>
+    </div>
+    <div class="mt-2">${escapeHtml(p.content)}</div>
+    ${tagHtml(p.tags)}
+    <div class="d-flex gap-3 mt-3 mini">
+      <a href="#" class="link-underline link-underline-opacity-0"><i class="bi bi-chat"></i> 3</a>
+      <a href="#" class="link-underline link-underline-opacity-0"><i class="bi bi-heart"></i> 12</a>
+      <a href="#" class="link-underline link-underline-opacity-0"><i class="bi bi-bookmark"></i></a>
+    </div>
+  </article>`;
+}
+function renderFeed(){ document.getElementById('feed').innerHTML = state.posts.map(postCard).join(''); }
+function renderMyPosts(){ document.getElementById('myPosts').innerHTML = state.posts.filter(p=>p.author==='익명').map(postCard).join('') || `<div class='soft-card p-4 text-center mini'>내 글이 여기에 보여요</div>` }
+
+// ------ 라우팅 ------
+function showScreen(hash){
+  const target = hash || location.hash || '#home';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.querySelector(target);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('[data-route]').forEach(a=> a.classList.toggle('active', a.getAttribute('data-route')===target));
+}
+window.addEventListener('hashchange', ()=>showScreen());
+
+// ------ DOM Ready ------
+window.addEventListener('DOMContentLoaded', ()=>{
+  renderFeed(); renderMyPosts(); showScreen();
+  // 탭 클릭 → 라우팅
+  document.querySelectorAll('[data-route]').forEach(el=> el.addEventListener('click', ()=> location.hash = el.getAttribute('data-route')));
+
+  // Swiper
+  if (window.Swiper){ new Swiper('.swiper', { slidesPerView: 1.2, spaceBetween: 12, breakpoints:{ 576:{slidesPerView:2.2} }, pagination:{ el:'.swiper-pagination', clickable:true } }); }
+
+  // 작성
+  document.getElementById('postBtn').addEventListener('click', ()=>{
+    const v = document.getElementById('composeText').value.trim(); if(!v) return;
+    state.posts.unshift({ id:Date.now(), author:'익명', time:Date.now(), content:v, tags:['레트로'] });
+    document.getElementById('composeText').value='';
+    renderFeed(); renderMyPosts();
+    const modal = bootstrap.Modal.getInstance(document.getElementById('composeModal')); modal?.hide();
+  });
+});
+
+// ------ helpers ------
+function escapeHtml(s=''){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m])); }
+</script>
+</body>
+</html>

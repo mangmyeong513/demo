@@ -1,0 +1,226 @@
+좋아—화면 구석에서 깜빡이고 통통 튀는 **작은 도트펫(다마고치 느낌)** 붙여줄게.
+아래 “드롭-인 모듈”을 **그대로 붙여 넣기**만 하면 네 기존 v3.x 페이지 어디서나 돌아가. 기능은 가볍고, UI만 얹는 거라 다른 코드 안 건드려도 돼.
+
+---
+
+### 1) HTML (</body> 바로 위에 붙여 넣기)
+
+```html
+<!-- ▼ DotPet: corner pixel pet (Tamagotchi-like) ▼ -->
+<div id="tamaPet" class="tamapet" aria-live="polite">
+  <div class="tamapet-bubble" title="펫 열기/닫기" role="button" tabindex="0">
+    <!-- 12x12 픽셀 느낌의 SVG 펫. 색상은 CSS 변수로 바뀜 -->
+    <svg viewBox="0 0 16 16" class="tamapet-sprite" aria-hidden="true">
+      <!-- outline -->
+      <rect x="2" y="3" width="12" height="10" fill="#111"/>
+      <rect x="3" y="4" width="10" height="8" fill="var(--pet-body)"/>
+      <!-- face -->
+      <rect x="6" y="8" width="1" height="1" fill="#111"/>
+      <rect x="9" y="8" width="1" height="1" fill="#111"/>
+      <rect x="5" y="9" width="2" height="1" fill="#f2b4b4"/>
+      <rect x="9" y="9" width="2" height="1" fill="#f2b4b4"/>
+      <!-- antenna -->
+      <rect x="8" y="2" width="1" height="2" fill="#111"/>
+      <rect x="9" y="2" width="2" height="1" fill="#111"/>
+      <rect x="7" y="1" width="2" height="1" fill="var(--pet-light)"/>
+    </svg>
+    <div class="tamapet-emo" aria-hidden="true">♡</div>
+  </div>
+
+  <div class="tamapet-panel soft-card">
+    <div class="tp-head">
+      <strong>도트펫</strong>
+      <span class="tp-mood mini" id="tpMood">기분 좋아요</span>
+    </div>
+    <div class="tp-bars">
+      <label class="mini">배고픔</label><div class="bar"><span id="tpHungry"></span></div>
+      <label class="mini">청결</label><div class="bar"><span id="tpClean"></span></div>
+      <label class="mini">에너지</label><div class="bar"><span id="tpEnergy"></span></div>
+      <label class="mini">즐거움</label><div class="bar"><span id="tpFun"></span></div>
+    </div>
+    <div class="tp-actions">
+      <button class="tp-btn" data-act="feed">🍪 밥주기</button>
+      <button class="tp-btn" data-act="wash">🫧 씻기기</button>
+      <button class="tp-btn" data-act="play">🎮 놀아주기</button>
+      <button class="tp-btn" data-act="nap">💤 낮잠</button>
+    </div>
+  </div>
+</div>
+<!-- ▲ DotPet end ▲ -->
+```
+
+---
+
+### 2) CSS (기존 `<style>` 아래쪽에 추가)
+
+```css
+/* ===== DotPet (corner Tamagotchi) ===== */
+:root{
+  --pet-body:#96e29b;      /* 기본 몸색 */
+  --pet-light:#d6ffe0;     /* 하이라이트 */
+}
+.tamapet{
+  position:fixed; z-index:1060; right:18px; bottom:18px;
+  font-family: inherit;
+}
+@media (max-width: 992px){ .tamapet{ left:14px; right:auto; bottom:96px; } } /* 모바일: FAB/탭바 피해서 왼쪽으로 */
+.tamapet-bubble{
+  width:64px; height:64px; border-radius:18px;
+  background:linear-gradient(180deg,#fffdf4,#fff4e2);
+  border:1px solid var(--stroke);
+  display:grid; place-items:center; cursor:pointer;
+  box-shadow:0 10px 18px rgba(0,0,0,.12);
+  animation: tp-bounce 3.2s ease-in-out infinite;
+}
+.tamapet-bubble:focus{ outline:4px solid rgba(244,182,97,.25); }
+.tamapet-sprite{ width:38px; image-rendering:pixelated; }
+.tamapet-emo{ position:absolute; top:-10px; right:-6px; font-weight:800; color:#e45858; opacity:0; transform:translateY(-4px); }
+.tamapet-panel{
+  margin-top:8px; padding:12px; min-width:220px; border-radius:16px; border:1px solid var(--stroke);
+  background:linear-gradient(180deg,#fffdf4,#fff4e2);
+  box-shadow:0 14px 28px rgba(0,0,0,.14);
+  display:none;
+}
+.tamapet.open .tamapet-panel{ display:block; }
+.tp-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.tp-bars label{ display:block; margin-top:6px; }
+.bar{ height:10px; border-radius:999px; background:#efe6d6; overflow:hidden; }
+.bar>span{ display:block; height:100%; background:linear-gradient(90deg,#F7D58C,#F4B661); width:50%; }
+.tp-actions{ display:grid; grid-template-columns: repeat(2,1fr); gap:6px; margin-top:10px; }
+.tp-btn{
+  padding:8px 10px; border-radius:12px; border:1px solid var(--stroke);
+  background:#fff; cursor:pointer; font-weight:700;
+}
+.tp-btn:active{ transform:translateY(1px); }
+@keyframes tp-bounce{
+  0%,100%{ transform:translateY(0) }
+  50%{ transform:translateY(-4px) }
+}
+/* 감정 이펙트 */
+.tamapet.heart .tamapet-emo{ animation: tp-pop .9s ease both }
+@keyframes tp-pop{
+  0%{ opacity:0; transform:translateY(4px) scale(.8) }
+  30%{ opacity:1; transform:translateY(-2px) scale(1.05) }
+  100%{ opacity:0; transform:translateY(-12px) scale(.9) }
+}
+```
+
+---
+
+### 3) JS (기존 스크립트 맨 아래에 추가)
+
+```html
+<script>
+/* ===== DotPet state (localStorage, 사용자별로 분리) ===== */
+(function(){
+  const $ = (s,r=document)=>r.querySelector(s);
+  const petEl = $('#tamaPet');
+  const bubble = petEl.querySelector('.tamapet-bubble');
+  const panel  = petEl.querySelector('.tamapet-panel');
+  const bars = {
+    hungry: $('#tpHungry'),
+    clean:  $('#tpClean'),
+    energy: $('#tpEnergy'),
+    fun:    $('#tpFun')
+  };
+  const moodEl = $('#tpMood');
+  const colorCycle = ['#96e29b','#bfa3ef','#7fc5ff','#fff29a','#c3a1ff','#ffc0c0','#b6f7ff','#ffc67a','#c9ef9a'];
+  let colorIndex = 0;
+
+  // user-scoped key (네 앱의 current()가 있으면 사용, 없으면 guest)
+  const who = (typeof current==='function' && current()) ? current().id : 'guest';
+  const KEY = `retro-dotpet:${who}`;
+  const now = ()=>Date.now();
+
+  const defaultState = { hungry:35, clean:70, energy:80, fun:60, last: now(), sleeping:false };
+  let st = load();
+
+  function load(){
+    try{ return Object.assign({}, defaultState, JSON.parse(localStorage.getItem(KEY)||'{}')); }
+    catch{ return {...defaultState}; }
+  }
+  function save(){ localStorage.setItem(KEY, JSON.stringify(st)); }
+
+  function clamp(v){ return Math.max(0, Math.min(100, v)); }
+  function decay(){
+    const dtMin = (now() - st.last)/60000; // 분
+    if(dtMin <= 0) return;
+    const mul = st.sleeping ? 0.25 : 1;
+    st.hungry = clamp(st.hungry + 2*mul*dtMin);
+    st.clean  = clamp(st.clean - 1.2*dtMin);
+    st.energy = clamp(st.energy - (st.sleeping? -2.5:1.6)*dtMin);
+    st.fun    = clamp(st.fun - 1.0*dtMin);
+    st.last = now();
+    save();
+  }
+  function mood(){
+    const bad = Number(st.hungry>70) + Number(st.clean<30) + Number(st.energy<30) + Number(st.fun<30);
+    if(bad>=3) return '삐졌어요…';
+    if(st.hungry>70) return '배고파요';
+    if(st.clean<30)  return '씻고 싶어요';
+    if(st.energy<30) return '졸려요';
+    if(st.fun<30)    return '심심해요';
+    return '기분 좋아요';
+  }
+  function paint(){
+    bars.hungry.style.width = `${100-st.hungry}%`;   // 배고픔은 반대로
+    bars.clean.style.width  = `${st.clean}%`;
+    bars.energy.style.width = `${st.energy}%`;
+    bars.fun.style.width    = `${st.fun}%`;
+    moodEl.textContent = st.sleeping ? 'zzz… 낮잠 중' : mood();
+
+    // 색 순환으로 작은 변화 주기
+    colorIndex = (colorIndex+1)%colorCycle.length;
+    document.documentElement.style.setProperty('--pet-body', colorCycle[colorIndex]);
+    document.documentElement.style.setProperty('--pet-light', '#ffffff');
+  }
+
+  // 액션
+  petEl.addEventListener('click', (e)=>{
+    const actBtn = e.target.closest('[data-act]');
+    if(actBtn){ doAct(actBtn.getAttribute('data-act')); return; }
+    if(e.target.closest('.tamapet-bubble')){
+      petEl.classList.toggle('open');
+      paint();
+    }
+  });
+  bubble.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); petEl.classList.toggle('open'); paint(); }});
+
+  function doAct(act){
+    decay();
+    if(act==='feed'){ st.hungry = clamp(st.hungry-35); heart(); }
+    if(act==='wash'){ st.clean  = clamp(st.clean+35);  heart(); }
+    if(act==='play'){ st.fun    = clamp(st.fun+30); st.energy=clamp(st.energy-8); heart(); }
+    if(act==='nap'){  st.sleeping = !st.sleeping; heart('💤'); }
+    st.last = now(); save(); paint();
+  }
+  function heart(char='♡'){
+    const emo = petEl.querySelector('.tamapet-emo');
+    emo.textContent = char;
+    petEl.classList.remove('heart');
+    void emo.offsetWidth; // reflow to restart animation
+    petEl.classList.add('heart');
+  }
+
+  // 주기적 업데이트
+  setInterval(()=>{ decay(); paint(); }, 60000); // 1분
+  // 화면 깜빡임(눈 깜빡이듯 감정표시)
+  setInterval(()=>{ if(!petEl.classList.contains('open')) heart('☆'); }, 6200);
+
+  // 초기 렌더
+  decay(); paint();
+})();
+</script>
+```
+
+---
+
+### 어떻게 보이냐
+
+* 데스크톱: **오른쪽 아래** 말랑한 버블 안에 픽셀 펫이 살짝 튀어오르며 깜빡여.
+* 모바일: 하단 탭바/FAB을 피해서 **왼쪽 위쪽(탭바 위)** 로 자동 이동.
+* 버블을 클릭하면 **작은 패널**이 열리고 `밥/씻기/놀기/낮잠` 버튼과 상태 바가 보여.
+* 상태는 **`localStorage`** 에 사용자별로 저장(네 앱의 `current().id`가 있으면 그 키로 분리).
+* 색상은 부드럽게 순환해서, 네가 보낸 레트로 도트 이미지처럼 **파스텔 팔레트** 느낌이 난다.
+
+원하는 감정표현(예: 눈 감기/웃기)이나 위치 조정이 있으면 말해줘. 스프라이트를 **정식 3프레임 애니메이션**으로 바꾸거나, 특정 태그(#펫스타그램 같은 거)에 반응하게 만드는 것도 바로 얹을 수 있어.
